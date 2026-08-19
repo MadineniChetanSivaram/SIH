@@ -1,0 +1,23 @@
+{
+  "short_name": "SpatialEye",
+  "name": "SpatialEye Mobile — Spatial Memory Assistant for Blind Users",
+  "description": "Personalized spatial memory and temporal change detection assistant for blind and visually impaired users.",
+  "icons": [
+    {
+      "src": "/assets/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/assets/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#020617",
+  "theme_color": "#06b6d4",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "categories": ["accessibility", "utilities", "navigation"]
+}

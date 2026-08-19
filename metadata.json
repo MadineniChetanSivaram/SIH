@@ -1,0 +1,12 @@
+{
+  "name": "SpatialEye",
+  "description": "Personalized spatial memory and temporal change detection assistant for blind and visually impaired users.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
+
