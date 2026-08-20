@@ -45,6 +45,7 @@ import { speechOutputManager } from '../services/speechOutputManager';
 import { voiceController } from '../services/voiceController';
 import { SpatialEngine } from '../services/spatialEngine';
 import { cameraFrameService } from '../services/cameraFrameService';
+import { DatabaseService } from '../services/database';
 
 interface LiveMonitorViewProps {
   activeEnvironment: Environment;
@@ -283,18 +284,44 @@ export const LiveMonitorView: React.FC<LiveMonitorViewProps> = ({
             speechOutputManager.speak('Your path is clear straight ahead for about 3 meters. You can walk forward.', { priority: 'IMPORTANT' });
           }
         } else if (changes && changes.length > 0) {
+          // Log changes to database
+          changes.forEach((c: any) => {
+            DatabaseService.logChange({
+              id: `chg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+              environmentId: activeEnvironment.id,
+              environmentName: activeEnvironment.customLabel ? `${activeEnvironment.id} (${activeEnvironment.customLabel})` : activeEnvironment.id,
+              timestamp: new Date().toISOString(),
+              changeType: c.changeType || 'new_obstacle',
+              objectLabel: c.objectLabel || 'Obstacle',
+              distanceMeters: Number(c.distanceMeters) || 1.5,
+              clockDirection: Number(c.clockDirection) || 12,
+              angleDegrees: Number(c.clockDirection) <= 6 ? (Number(c.clockDirection) || 12) * 30 : ((Number(c.clockDirection) || 12) - 12) * 30,
+              affectsHabitualPath: true,
+              riskLevel: c.riskLevel === 'high' || c.riskLevel === 'critical' ? 'critical' : 'important',
+              riskScore: c.riskScore || 80,
+              persistenceClassification: 'temporary',
+              verbalAlertText: c.verbalAlertText,
+              evasionGuidance: c.evasionGuidance,
+              evasionDirection: c.evasionDirection,
+              earconTone: c.riskLevel === 'high' || c.riskLevel === 'critical' ? 'critical' : 'warning',
+              hapticPattern: [120, 60, 120],
+              confidence: 0.95,
+              details: `Detected during live spatial scan: ${c.verbalAlertText}`,
+            });
+          });
+
           const top = changes[0];
-          if (top.riskLevel === 'critical' || top.riskLevel === 'important') {
-            if (top.riskLevel === 'critical') {
-              audioSynth.playHighRiskBeep(top.angleDegrees);
+          if (top.riskLevel === 'critical' || top.riskLevel === 'important' || top.riskLevel === 'high') {
+            if (top.riskLevel === 'critical' || top.riskLevel === 'high') {
+              audioSynth.playHighRiskBeep(top.angleDegrees || 0);
               hapticsService.trigger('critical');
             } else {
-              audioSynth.playLowRiskBeep(top.angleDegrees);
+              audioSynth.playLowRiskBeep(top.angleDegrees || 0);
               hapticsService.trigger('info');
             }
             speechOutputManager.speak(top.verbalAlertText, {
               priority: 'CRITICAL',
-              dedupKey: `${top.objectLabel}-${top.distanceMeters.toFixed(0)}`,
+              dedupKey: `${top.objectLabel}-${top.distanceMeters?.toFixed(0)}`,
               cooldownMs: 5000,
               isAlert: true,
             });
